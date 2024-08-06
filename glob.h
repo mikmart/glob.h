@@ -25,6 +25,20 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef GLOB_H_
 #define GLOB_H_
 #include <wchar.h>
+#include <stdbool.h>
+
+/**
+ * Match a glob pattern against text.
+ *
+ * Multibyte strings are supported by converting the inputs to wide character
+ * strings. Note that the conversion depends on the current locale.
+ *
+ * Specialized functions give more control and return a more detailed result:
+ * - `glob_str()` assumes single byte strings and does no conversions.
+ * - `glob_mbs()` converts inputs as multibyte strings in the current locale.
+ * - `glob_wcs()` takes wide character strings as inputs directly.
+ */
+bool glob(const char *pattern, const char *text);
 
 typedef enum glob_result_code_e {
     GLOB_UNMATCHED = 0,
@@ -35,18 +49,9 @@ typedef enum glob_result_code_e {
 
 const char *glob_result_code_str(glob_result_code_t result);
 
-/**
- * Match a pattern against text.
- *
- * Multibyte strings are supported by converting the inputs to wide character
- * strings. Note that the conversion depends on the current locale.
- * 
- * See `strglob()` that skips the conversion but only works on single byte
- * strings, or `wcsglob()` for working directly with wide character strings.
- */
-glob_result_code_t glob(const char *pattern, const char *text);
-glob_result_code_t strglob(const char *pattern, const char *text);
-glob_result_code_t wcsglob(const wchar_t *pattern, const wchar_t *text);
+glob_result_code_t glob_str(const char *pattern, const char *text);
+glob_result_code_t glob_mbs(const char *pattern, const char *text);
+glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text);
 
 #endif // GLOB_H_
 
@@ -54,7 +59,10 @@ glob_result_code_t wcsglob(const wchar_t *pattern, const wchar_t *text);
 #ifdef GLOB_IMPLEMENTATION
 #include <stdlib.h>
 #include <assert.h>
-#include <stdbool.h>
+
+bool glob(const char *pattern, const char *text) {
+    return glob_mbs(pattern, text) == GLOB_MATCHED;
+}
 
 const char *glob_result_code_str(glob_result_code_t result) {
     switch (result) {
@@ -66,29 +74,7 @@ const char *glob_result_code_str(glob_result_code_t result) {
     assert(0 && "UNREACHABLE");
 }
 
-static wchar_t *strwcs(const char *s) {
-    if (s == NULL) return 0;
-    size_t len = mbstowcs(NULL, s, 0);
-    if (len == -1) return 0; // Invalid multibyte sequence.
-    wchar_t *w = malloc((len + 1) * sizeof *w);
-    if (w == NULL) return 0;
-    mbstowcs(w, s, len + 1);
-    return w;
-}
-
-glob_result_code_t glob(const char *pattern, const char *text) {
-    glob_result_code_t result = GLOB_ENCODING_ERROR;
-    wchar_t *p = strwcs(pattern);
-    wchar_t *t = strwcs(text);
-    if (p && t) {
-        result = wcsglob(p, t);
-    }
-    free(p);
-    free(t);
-    return result;
-}
-
-static glob_result_code_t generic_glob(size_t stride, const void *p, const void *t) {
+static glob_result_code_t glob_generic(size_t stride, const void *p, const void *t) {
     const char *pattern = p;
     const char *text = t;
     
@@ -100,7 +86,7 @@ static glob_result_code_t generic_glob(size_t stride, const void *p, const void 
             } break;
             
             case '*': {
-                glob_result_code_t result = generic_glob(stride, pattern + stride, text);
+                glob_result_code_t result = glob_generic(stride, pattern + stride, text);
                 switch (result) {
                     case GLOB_ENCODING_ERROR:
                         assert(0 && "UNREACHABLE");
@@ -179,14 +165,34 @@ static glob_result_code_t generic_glob(size_t stride, const void *p, const void 
     return *pattern == '\0' && *text == '\0';
 }
 
-// These are not macros because I don't want to expose generic_glob().
+static wchar_t *strwcs(const char *s) {
+    if (s == NULL) return 0;
+    size_t len = mbstowcs(NULL, s, 0);
+    if (len == -1) return 0; // Invalid multibyte sequence.
+    wchar_t *w = malloc((len + 1) * sizeof *w);
+    if (w == NULL) return 0;
+    mbstowcs(w, s, len + 1);
+    return w;
+}
 
-glob_result_code_t strglob(const char *pattern, const char *text) {
-    return generic_glob(sizeof(char), (void *)pattern, (void *)text);
+glob_result_code_t glob_mbs(const char *pattern, const char *text) {
+    glob_result_code_t result = GLOB_ENCODING_ERROR;
+    wchar_t *p = strwcs(pattern);
+    wchar_t *t = strwcs(text);
+    if (p && t) {
+        result = glob_wcs(p, t);
+    }
+    free(p);
+    free(t);
+    return result;
+}
+
+glob_result_code_t glob_str(const char *pattern, const char *text) {
+    return glob_generic(sizeof(char), (void *)pattern, (void *)text);
 };
 
-glob_result_code_t wcsglob(const wchar_t *pattern, const wchar_t *text) {
-    return generic_glob(sizeof(wchar_t), (void *)pattern, (void *)text);
+glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
+    return glob_generic(sizeof(wchar_t), (void *)pattern, (void *)text);
 };
 
 #endif // GLOB_IMPLEMENTATION

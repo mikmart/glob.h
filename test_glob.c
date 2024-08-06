@@ -8,7 +8,7 @@
 #define check_glob(pattern, text, expected) check_glob_located(__FILE__, __LINE__, pattern, text, expected)
 
 void check_glob_located(const char *file, int line, const char *pattern, const char *text, glob_result_code_t expected) {
-    glob_result_code_t actual = glob(pattern, text);
+    glob_result_code_t actual = glob_mbs(pattern, text);
     printf("%12s <=> %-10s => %s\n", pattern, text, glob_result_code_str(actual));
     if (actual != expected) {
         printf("%s:%d: FAILURE! Expected %s.\n", file, line, glob_result_code_str(expected));

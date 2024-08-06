@@ -22,15 +22,10 @@ int main(int argc, const char *argv[]) {
     const char *text = argv[2];
 
     printf("Matching \"%s\" against \"%s\"... ", pattern, text);
-    switch (glob(pattern, text)) {
-        case GLOB_MATCHED:
-            printf("It's a match!\n");
-            break;
-        case GLOB_UNMATCHED:
-            printf("It doesn't match.\n");
-            break;
-        default:
-            printf("Something went wrong.\n");
+    if (glob(pattern, text)) {
+        printf("It's a match!\n");
+    else {
+        printf("It doesn't match.\n");
     }
 
     return 0;
