@@ -1,11 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <locale.h>
-
 #define GLOB_IMPLEMENTATION
 #include "glob.h"
-
-#define check_glob(pattern, text, expected) check_glob_located(__FILE__, __LINE__, pattern, text, expected)
 
 void check_glob_located(const char *file, int line, const char *pattern, const char *text, glob_result_code_t expected) {
     glob_result_code_t actual = glob_mbs(pattern, text);
@@ -15,6 +11,8 @@ void check_glob_located(const char *file, int line, const char *pattern, const c
         exit(1);
     }
 }
+
+#define check_glob(pattern, text, expected) check_glob_located(__FILE__, __LINE__, pattern, text, expected)
 
 int main(int argc, char **argv) {
     check_glob("main.?", "main.c", GLOB_MATCHED);
@@ -27,7 +25,6 @@ int main(int argc, char **argv) {
     check_glob("*.[abc]", "main.c", GLOB_MATCHED);
     check_glob("*.[abc]", "main.b", GLOB_MATCHED);
     check_glob("*.[abc]", "main.d", GLOB_UNMATCHED);
-    printf("\n");
     check_glob("*.[abc", "main.d", GLOB_SYNTAX_ERROR);
     printf("\n");
     check_glob("[][!]", "]", GLOB_MATCHED);
@@ -73,6 +70,7 @@ int main(int argc, char **argv) {
     check_glob("[a-]", "a", GLOB_MATCHED);
     check_glob("[-c]", "-", GLOB_MATCHED);
     check_glob("[-c]", "c", GLOB_MATCHED);
+    check_glob("[-c]", "b", GLOB_UNMATCHED);
     printf("\n");
     check_glob("[]-]", "]", GLOB_MATCHED);
     check_glob("[]-]", "-", GLOB_MATCHED);
@@ -81,7 +79,6 @@ int main(int argc, char **argv) {
     check_glob("[[-b]", "[", GLOB_MATCHED);
     check_glob("[[-b]", "a", GLOB_MATCHED);
     check_glob("[[-b]", "b", GLOB_MATCHED);
-    printf("\n");
     printf("\n");
     check_glob("[!ab]", "a", GLOB_UNMATCHED);
     check_glob("[!ab]", "b", GLOB_UNMATCHED);
@@ -106,5 +103,5 @@ int main(int argc, char **argv) {
     setlocale(LC_ALL, "");
     check_glob("[Пп]ривет, [Мм]ир", "Привет, Мир", GLOB_MATCHED);
     check_glob("\u06ff", "\u07ff", GLOB_UNMATCHED);
-    return EXIT_SUCCESS;
+    return 0;
 }
