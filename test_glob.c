@@ -103,5 +103,6 @@ int main(int argc, char **argv) {
     printf("\n");
     setlocale(LC_ALL, "");
     check_glob("[Пп]ривет, [Мм]ир", "Привет, Мир", GLOB_MATCHED);
+    check_glob("\u06ff", "\u07ff", GLOB_UNMATCHED);
     return EXIT_SUCCESS;
 }
