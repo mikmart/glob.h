@@ -24,7 +24,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifndef GLOB_H_
 #define GLOB_H_
-#include <wctype.h>
+#include <wchar.h>
 
 typedef enum glob_result_code_e {
     GLOB_UNMATCHED = 0,
@@ -52,9 +52,9 @@ glob_result_code_t wcsglob(const wchar_t *pattern, const wchar_t *text);
 
 
 #ifdef GLOB_IMPLEMENTATION
+#include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
-#include <wchar.h>
 
 const char *glob_result_code_str(glob_result_code_t result) {
     switch (result) {
