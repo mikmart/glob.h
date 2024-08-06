@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 
 #define GLOB_IMPLEMENTATION
 #include "glob.h"
 
-#define check_glob(pattern, text, expected) check_eglob(pattern, text, GLOB_FLAGS_EMPTY, expected)
-#define check_eglob(pattern, text, flags, expected) check_eglob_located(__FILE__, __LINE__, pattern, text, flags, expected)
+#define check_glob(pattern, text, expected) check_glob_located(__FILE__, __LINE__, pattern, text, expected)
 
-void check_eglob_located(const char *file, int line, const char *pattern, const char *text, unsigned flags, glob_result_code_t expected) {
-    glob_result_code_t actual = eglob(pattern, text, flags);
-    printf("%12s <=> %-12s [flags: %u] => %s\n", pattern, text, flags, glob_result_code_str(actual));
+void check_glob_located(const char *file, int line, const char *pattern, const char *text, glob_result_code_t expected) {
+    glob_result_code_t actual = glob(pattern, text);
+    printf("%12s <=> %-10s => %s\n", pattern, text, glob_result_code_str(actual));
     if (actual != expected) {
         printf("%s:%d: FAILURE! Expected %s.\n", file, line, glob_result_code_str(expected));
         exit(1);
@@ -80,8 +80,6 @@ int main(int argc, char **argv) {
     check_glob("[[-b]", "a", GLOB_MATCHED);
     check_glob("[[-b]", "b", GLOB_MATCHED);
     printf("\n");
-    check_eglob("*/", "foo/", GLOB_FLAGS_EMPTY, GLOB_MATCHED);
-    check_eglob("*/", "foo/", GLOB_FLAGS_NO_MATCH_FORWARD_SLASH, GLOB_UNMATCHED);
     printf("\n");
     check_glob("[!ab]", "a", GLOB_UNMATCHED);
     check_glob("[!ab]", "b", GLOB_UNMATCHED);
@@ -102,5 +100,8 @@ int main(int argc, char **argv) {
     check_glob("\\[", "[", GLOB_MATCHED);
     check_glob("\\", "\\", GLOB_SYNTAX_ERROR);
     check_glob("\\\\", "\\", GLOB_MATCHED);
+    printf("\n");
+    setlocale(LC_ALL, "");
+    check_glob("[Пп]ривет, [Мм]ир", "Привет, Мир", GLOB_MATCHED);
     return EXIT_SUCCESS;
 }
