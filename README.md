@@ -2,6 +2,16 @@
 
 A simple glob pattern matching library in C following Alexey Kutepov's [Tsoding session VOD](https://youtu.be/B2VS_zeuTQ4) and [glob.h library](https://github.com/tsoding/glob.h), as well as Challenge 15 in the [Modern C book](https://inria.hal.science/hal-02383654v1/file/ModernC.pdf).
 
+## Features
+
+- [x] `?` to match any single character.
+- [x] `*` to match any string (including the empty string).
+- [x] `[` to match a single character from a character class.
+    - [x] Complementation with `[!...]`.
+    - [x] Ranges with `-`, e.g. `[0-9]`.
+    - [ ] Named character classes, e.g. `[:alnum:]`.
+- [x] Multibyte string support (requires `setlocale()`).
+
 ## Usage
 
 ```c
