@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
     check_glob("Letter[0-9]", "Letters", GLOB_UNMATCHED);
     check_glob("Letter[0-9]", "Letter", GLOB_UNMATCHED);
     check_glob("Letter[0-9]", "Letter10", GLOB_UNMATCHED);
+    check_glob("Letter[0-9", "Letter10", GLOB_SYNTAX_ERROR);
+    check_glob("Letter[0-", "Letter10", GLOB_SYNTAX_ERROR);
     printf("\n");
     check_glob("[--0]", "-", GLOB_MATCHED); // ASCII 45
     check_glob("[--0]", ".", GLOB_MATCHED);

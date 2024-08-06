@@ -138,12 +138,11 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
                         case '-': {
                             const wchar_t *prev = pattern - 1;
                             const wchar_t *next = pattern + 1;
-                            if (*next == '\0') return GLOB_SYNTAX_ERROR;
                             if (prev == start || *next == ']') {
                                 // Fall through to match first/last literally.
                             } else {
                                 matched |= *prev <= *text && *text <= *next;
-                                pattern += 2;
+                                pattern += 1;
                                 break;
                             }
                         };
@@ -228,12 +227,11 @@ glob_result_code_t glob_str(const char *pattern, const char *text) {
                         case '-': {
                             const char *prev = pattern - 1;
                             const char *next = pattern + 1;
-                            if (*next == '\0') return GLOB_SYNTAX_ERROR;
                             if (prev == start || *next == ']') {
                                 // Fall through to match first/last literally.
                             } else {
                                 matched |= *prev <= *text && *text <= *next;
-                                pattern += 2;
+                                pattern += 1;
                                 break;
                             }
                         };
