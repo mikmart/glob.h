@@ -180,7 +180,7 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
         pattern += 1;
     }
 
-    return *pattern == '\0' && *text == '\0';
+    return *pattern == '\0' && *text == '\0' ? GLOB_MATCHED : GLOB_UNMATCHED;
 };
 
 // This is and should be a copy-paste of glob_wcs() with wchar_t -> char.
@@ -269,7 +269,7 @@ glob_result_code_t glob_str(const char *pattern, const char *text) {
         pattern += 1;
     }
 
-    return *pattern == '\0' && *text == '\0';
+    return *pattern == '\0' && *text == '\0' ? GLOB_MATCHED : GLOB_UNMATCHED;
 };
 
 #endif // GLOB_IMPLEMENTATION
