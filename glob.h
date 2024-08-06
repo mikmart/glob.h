@@ -34,6 +34,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * strings. Note that the conversion depends on the current locale.
  *
  * Specialized functions give more control and return a more detailed result:
+ * - `glob_str()` assumes a single byte encoding and does no conversion.
  * - `glob_mbs()` converts inputs as multibyte strings in the current locale.
  * - `glob_wcs()` takes wide character strings as inputs directly.
  */
@@ -48,6 +49,7 @@ typedef enum glob_result_code_e {
 
 const char *glob_result_code_str(glob_result_code_t result);
 
+glob_result_code_t glob_str(const char *pattern, const char *text);
 glob_result_code_t glob_mbs(const char *pattern, const char *text);
 glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text);
 
@@ -94,7 +96,6 @@ glob_result_code_t glob_mbs(const char *pattern, const char *text) {
     return result;
 }
 
-// TODO: wchar_t -> char to skip conversion, but the macros are so awful.
 glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
     while (*pattern != '\0' && *text != '\0') {
         switch (*pattern) {
@@ -102,7 +103,7 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
                 pattern += 1;
                 text    += 1;
             } break;
-            
+
             case '*': {
                 glob_result_code_t result = glob_wcs(pattern + 1, text);
                 switch (result) {
@@ -116,19 +117,19 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
                     }
                 }
             } break;
-            
+
             case '[': {
                 pattern += 1; // Skip [
-                
+
                 bool negate_match = false;
                 if (*pattern == '!') {
                     negate_match = true;
                     pattern += 1;
                 }
-                
+
                 // Remember start position for range processing.
                 const wchar_t *start = pattern - 1;
-                
+
                 bool matched = false;
                 do {
                     switch (*pattern) {
@@ -152,7 +153,7 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
                         }
                     }
                 } while (*pattern != ']');
-                
+
                 if (negate_match)
                     matched = !matched;
                 if (!matched) return GLOB_UNMATCHED;
@@ -166,7 +167,97 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
                 if (*pattern == '\0') return GLOB_SYNTAX_ERROR;
                 // Fall through to match next character literally.
             }
-            
+
+            default: {
+                if (*pattern == *text) {
+                    pattern += 1;
+                    text    += 1;
+                } else return GLOB_UNMATCHED;
+            }
+        }
+    }
+
+    if (*pattern == '*') {
+        pattern += 1;
+    }
+
+    return *pattern == '\0' && *text == '\0';
+};
+
+// This is and should be a copy-paste of glob_wcs() with wchar_t -> char.
+// Would be nice to be more generic but the macros for it make me sad.
+glob_result_code_t glob_str(const char *pattern, const char *text) {
+    while (*pattern != '\0' && *text != '\0') {
+        switch (*pattern) {
+            case '?': {
+                pattern += 1;
+                text    += 1;
+            } break;
+
+            case '*': {
+                glob_result_code_t result = glob_str(pattern + 1, text);
+                switch (result) {
+                    case GLOB_ENCODING_ERROR:
+                        assert(0 && "UNREACHABLE");
+                    case GLOB_MATCHED:
+                    case GLOB_SYNTAX_ERROR:
+                        return result;
+                    case GLOB_UNMATCHED: {
+                        text += 1;
+                    }
+                }
+            } break;
+
+            case '[': {
+                pattern += 1; // Skip [
+
+                bool negate_match = false;
+                if (*pattern == '!') {
+                    negate_match = true;
+                    pattern += 1;
+                }
+
+                // Remember start position for range processing.
+                const char *start = pattern - 1;
+
+                bool matched = false;
+                do {
+                    switch (*pattern) {
+                        case '\0':
+                            return GLOB_SYNTAX_ERROR;
+                        case '-': {
+                            const char *prev = pattern - 1;
+                            const char *next = pattern + 1;
+                            if (*next == '\0') return GLOB_SYNTAX_ERROR;
+                            if (prev == start || *next == ']') {
+                                // Fall through to match first/last literally.
+                            } else {
+                                matched |= *prev <= *text && *text <= *next;
+                                pattern += 2;
+                                break;
+                            }
+                        };
+                        default: {
+                            matched |= *pattern == *text;
+                            pattern += 1;
+                        }
+                    }
+                } while (*pattern != ']');
+
+                if (negate_match)
+                    matched = !matched;
+                if (!matched) return GLOB_UNMATCHED;
+
+                pattern += 1; // Skip ]
+                text    += 1;
+            } break;
+
+            case '\\': {
+                pattern += 1;
+                if (*pattern == '\0') return GLOB_SYNTAX_ERROR;
+                // Fall through to match next character literally.
+            }
+
             default: {
                 if (*pattern == *text) {
                     pattern += 1;
