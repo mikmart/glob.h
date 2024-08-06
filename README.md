@@ -1,6 +1,6 @@
 # glob.h
 
-A simple glob pattern matching library in C following Alexey Kutepov's [Tsoding session VOD](https://youtu.be/B2VS_zeuTQ4) and [glob.h library](https://github.com/tsoding/glob.h), as well as Challenge 15 in the [Modern C book](https://inria.hal.science/hal-02383654v1/file/ModernC.pdf).
+A simple glob pattern matching library in C following Alexey Kutepov's [Tsoding session VOD](https://youtu.be/B2VS_zeuTQ4) and [glob.h library](https://github.com/tsoding/glob.h), as well as Challenge 15 in the [Modern C book](https://inria.hal.science/hal-02383654v1/file/ModernC.pdf) by Jens Gustedt.
 
 ## Features
 
@@ -34,7 +34,7 @@ int main(int argc, const char *argv[]) {
     printf("Matching \"%s\" against \"%s\"... ", pattern, text);
     if (glob(pattern, text)) {
         printf("It's a match!\n");
-    else {
+    } else {
         printf("It doesn't match.\n");
     }
 
