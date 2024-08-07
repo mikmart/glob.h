@@ -119,11 +119,8 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
             case '[': {
                 pattern += 1; // Skip [
 
-                bool negate_match = false;
-                if (*pattern == '!') {
-                    negate_match = true;
-                    pattern += 1;
-                }
+                bool negate = *pattern == '!';
+                if (negate) pattern += 1;
 
                 // Remember start position for range processing.
                 const wchar_t *start = pattern - 1;
@@ -151,8 +148,7 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
                     }
                 } while (*pattern != ']');
 
-                if (negate_match)
-                    matched = !matched;
+                if (negate) matched = !matched;
                 if (!matched) return GLOB_UNMATCHED;
 
                 pattern += 1; // Skip ]
@@ -207,11 +203,8 @@ glob_result_code_t glob_str(const char *pattern, const char *text) {
             case '[': {
                 pattern += 1; // Skip [
 
-                bool negate_match = false;
-                if (*pattern == '!') {
-                    negate_match = true;
-                    pattern += 1;
-                }
+                bool negate = *pattern == '!';
+                if (negate) pattern += 1;
 
                 // Remember start position for range processing.
                 const char *start = pattern - 1;
@@ -239,8 +232,7 @@ glob_result_code_t glob_str(const char *pattern, const char *text) {
                     }
                 } while (*pattern != ']');
 
-                if (negate_match)
-                    matched = !matched;
+                if (negate) matched = !matched;
                 if (!matched) return GLOB_UNMATCHED;
 
                 pattern += 1; // Skip ]
