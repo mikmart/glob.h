@@ -41,8 +41,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 bool glob(const char *pattern, const char *text);
 
 typedef enum glob_result_code_e {
-    GLOB_UNMATCHED = 0,
-    GLOB_MATCHED = 1,
+    GLOB_MATCHED = 0,
+    GLOB_UNMATCHED,
     GLOB_SYNTAX_ERROR,
     GLOB_ENCODING_ERROR,
 } glob_result_code_t;
@@ -65,8 +65,8 @@ bool glob(const char *pattern, const char *text) {
 
 const char *glob_result_code_str(glob_result_code_t result) {
     switch (result) {
-        case GLOB_UNMATCHED:       return "GLOB_UNMATCHED";
         case GLOB_MATCHED:         return "GLOB_MATCHED";
+        case GLOB_UNMATCHED:       return "GLOB_UNMATCHED";
         case GLOB_SYNTAX_ERROR:    return "GLOB_SYNTAX_ERROR";
         case GLOB_ENCODING_ERROR:  return "GLOB_ENCODING_ERROR";
     }
