@@ -58,7 +58,6 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text);
 
 #ifdef GLOB_IMPLEMENTATION
 #include <stdlib.h>
-#include <assert.h>
 
 bool glob(const char *pattern, const char *text) {
     return glob_mbs(pattern, text) == GLOB_MATCHED;
@@ -71,7 +70,7 @@ const char *glob_result_code_str(glob_result_code_t result) {
         case GLOB_SYNTAX_ERROR:    return "GLOB_SYNTAX_ERROR";
         case GLOB_ENCODING_ERROR:  return "GLOB_ENCODING_ERROR";
     }
-    assert(0 && "UNREACHABLE");
+    return NULL;
 }
 
 static wchar_t *strwcs(const char *s) {
@@ -107,10 +106,9 @@ glob_result_code_t glob_wcs(const wchar_t *pattern, const wchar_t *text) {
             case '*': {
                 glob_result_code_t result = glob_wcs(pattern + 1, text);
                 switch (result) {
-                    case GLOB_ENCODING_ERROR:
-                        assert(0 && "UNREACHABLE");
                     case GLOB_MATCHED:
                     case GLOB_SYNTAX_ERROR:
+                    case GLOB_ENCODING_ERROR:
                         return result;
                     case GLOB_UNMATCHED: {
                         text += 1;
@@ -196,10 +194,9 @@ glob_result_code_t glob_str(const char *pattern, const char *text) {
             case '*': {
                 glob_result_code_t result = glob_str(pattern + 1, text);
                 switch (result) {
-                    case GLOB_ENCODING_ERROR:
-                        assert(0 && "UNREACHABLE");
                     case GLOB_MATCHED:
                     case GLOB_SYNTAX_ERROR:
+                    case GLOB_ENCODING_ERROR:
                         return result;
                     case GLOB_UNMATCHED: {
                         text += 1;
